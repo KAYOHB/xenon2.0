@@ -1,0 +1,7 @@
+injective_py==0.5.8.9
+matplotlib==3.6.2
+pandas==1.5.1
+pyTelegramBotAPI==4.7.1
+python-dotenv==0.21.0
+requests==2.28.1
+seaborn==0.12.1
