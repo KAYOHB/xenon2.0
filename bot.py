@@ -9,7 +9,7 @@ import importlib.resources as pkg_resources
 import configparser
 import pyinjective
 
-from utils import price, get_denom, auction_pending, get_ob, get_market_id
+from utils import price, get_denom, auction_pending, get_ob, get_market_id, get_volume
 
 #Load bot api_key
 load_dotenv()
@@ -146,7 +146,7 @@ async def send_auction(message):
     bid_clean ="{:,}".format(bid).replace(',','.')
     await bot.reply_to(message, text=f"Canasta Actual: ${basket_clean} ≈ {inj_equ_clean} $INJ\nMejor Postor: {bidder}\nCantidad de la Oferta: {bid_clean} $INJ ≈ ${bid_worth_clean}\nGanancia Actual: ${profit_clean}\n\nMás información en:\nhttps://hub.injective.network/auction/")
 
-@bot.message_handler(commands=["auction_pend"])
+@bot.message_handler(commands=["pendingauction"])
 async def pending(message):
     auction = auction_pending()
     await bot.reply_to(message, text=f"The value of next week's pending auction is:\n\n${auction}\n\n"
@@ -197,5 +197,11 @@ async def send_ob(message):
             data = file.read()
         await bot.send_photo(chat_id= message.chat.id, photo = data, caption = f'{base_denom}/{quote_denom} {market_type} OB, brought to you by Xenon.\nSponsored by no one yet :|', reply_to_message_id=message)
 
-asyncio.run(bot.infinity_polling())
+@bot.message_handler(commands=["volume"])
+async def pending(message):
+    vol = get_volume()
+    auction = auction_pending()
+    await bot.reply_to(message, text=f"Total on-chain volume is currently:\n\n${vol}\n\nNext week's pending auction basket has accumulated:\n\n${auction}")
+
+asyncio.run(bot.infinity_polling(timeout=15))
 

@@ -131,7 +131,23 @@ def get_ob(market_id, type, base, quote):
 
     plt.savefig(f"tmp/{base}_{quote}_{type}.png", dpi=300)
 
+def get_volume():
+    url = "https://api.injective.network/api/chronos/v1/derivative/market_summary_all?resolution=24h"
+
+    r = requests.get(url)
+
+    data = json.loads(r.text)  
+    volume = 0
+
+    for i in range(len(data)):
+        volume += float(data[i]["volume"])
+    volume_tidy=round(volume,2)
+    volume_clean= "{:,}".format(volume_tidy)
+    return volume_clean
+
+
 if __name__ == '__main__':
-    asyncio.run(price("WETH", "USDT"))
-    get_denom("peggy0xdAC17F958D2ee523a2206206994597C13D831ec7")
-    print(auction_pending())
+    # asyncio.run(price("WETH", "USDT"))
+    # get_denom("peggy0xdAC17F958D2ee523a2206206994597C13D831ec7")
+    # print(auction_pending())
+    get_volume()
