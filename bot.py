@@ -8,13 +8,37 @@ import json
 import importlib.resources as pkg_resources
 import configparser
 import pyinjective
+import telebot
+from aiohttp import web
+import logging
+import ssl
 
 from utils import price, get_denom, auction_pending, get_ob, get_market_id, get_volume
+
+WEBHOOK_HOST = 'xenon3.com'
+WEBHOOK_PORT = 8443  # 443, 80, 88 or 8443 (port need to be 'open')
+WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
+WEBHOOK_SSL_CERT = 'ssl/webhook_cert.pem'  # Path to the ssl certificate
+WEBHOOK_SSL_PRIV = 'ssl/webhook_pkey.pem'  # Path to the ssl private key
+WEBHOOK_URL_BASE = "https://{}:{}".format(WEBHOOK_HOST, WEBHOOK_PORT)
+
+# Process webhook calls
+async def handle(request):
+    if request.match_info.get('token') == bot.token:
+        request_body_dict = await request.json()
+        update = telebot.types.Update.de_json(request_body_dict)
+        asyncio.ensure_future(bot.process_new_updates([update]))
+        return web.Response()
+    else:
+        return web.Response(status=403)
+
 
 #Load bot api_key
 load_dotenv()
 api_key=os.getenv("api_key")
 bot = AsyncTeleBot(api_key)
+logger = telebot.logger
+telebot.logger.setLevel(logging.INFO)
 
 @bot.message_handler(commands=["tokenomics"])
 async def tokenomics(message):
@@ -203,5 +227,34 @@ async def pending(message):
     auction = auction_pending()
     await bot.reply_to(message, text=f"Total on-chain volume is currently:\n\n${vol}\n\nNext week's pending auction basket has accumulated:\n\n${auction}")
 
-asyncio.run(bot.infinity_polling(timeout=15))
+async def shutdown(app):
+    logger.info('Shutting down: removing webhook')
+    await bot.remove_webhook()
+    logger.info('Shutting down: closing session')
+    await bot.close_session()
+
+async def setup():
+    # Remove webhook, it fails sometimes the set if there is a previous webhook
+    logger.info('Starting up: removing old webhook')
+    await bot.remove_webhook()
+    # Set webhook
+    logger.info('Starting up: setting webhook')
+    await bot.set_webhook(url=WEBHOOK_URL_BASE,
+                certificate=open(WEBHOOK_SSL_CERT, 'r'))
+    app = web.Application()
+    app.router.add_post('/', handle)
+    app.on_cleanup.append(shutdown)
+    return app
+
+if __name__ == '__main__':
+    # Build ssl context
+    context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+    context.load_cert_chain(WEBHOOK_SSL_CERT, WEBHOOK_SSL_PRIV)
+    # Start aiohttp server
+    web.run_app(
+        setup(),
+        host=WEBHOOK_LISTEN,
+        port=WEBHOOK_PORT,
+        ssl_context=context,
+    )
 

@@ -97,8 +97,8 @@ def get_ob(market_id, type, base, quote):
 
     for i in range(len(data["buys_price_level"])):
         buy_df = {
-                "price" : round(float(data["buys_price_level"][i]["price"]) / price_const, 2),
-                "quantity" : round(float(data["buys_price_level"][i]["quantity"]) / quant_const, 2),
+                "price" : round(float(data["buys_price_level"][i]["p"]) / price_const, 2),
+                "quantity" : round(float(data["buys_price_level"][i]["q"]) / quant_const, 2),
                 "side" : "bids"
         }
 
@@ -106,8 +106,8 @@ def get_ob(market_id, type, base, quote):
 
     for i in range(len(data["sells_price_level"])):
         sell_df = {
-            "price" : round(float(data["sells_price_level"][i]["price"]) / price_const, 2),
-            "quantity" : round(float(data["sells_price_level"][i]["quantity"]) / quant_const, 2),
+            "price" : round(float(data["sells_price_level"][i]["p"]) / price_const, 2),
+            "quantity" : round(float(data["sells_price_level"][i]["q"]) / quant_const, 2),
             "side" : "asks"
         }
 
