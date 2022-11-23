@@ -18,15 +18,16 @@ from utils import price, get_denom, auction_pending, get_ob, get_market_id, get_
 load_dotenv()
 API_TOKEN = os.getenv("api_key")
 WEBHOOK_HOST = 'xenon3.ddns.net'
-WEBHOOK_PORT = 8443  # 443, 80, 88 or 8443 (port need to be 'open')
+WEBHOOK_PORT = 8443 # 443, 80, 88 or 8443 (port need to be 'open')
 WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
 WEBHOOK_SSL_CERT = '/home/kayo/projects/tg1/main/xenon2.0/ssl/webhook_cert.pem'  # Path to the ssl certificate
 WEBHOOK_SSL_PRIV = '/home/kayo/projects/tg1/main/xenon2.0/ssl/webhook_pkey.pem'  # Path to the ssl private key
 WEBHOOK_URL_BASE = "https://{}:{}".format(WEBHOOK_HOST, WEBHOOK_PORT)
+WEBHOOK_URL_PATH = "/{}/".format(API_TOKEN)
 
 # Process webhook calls
 async def handle(request):
-    if request:
+    if request.match_info.get('token') == bot.token:
         request_body_dict = await request.json()
         update = telebot.types.Update.de_json(request_body_dict)
         asyncio.ensure_future(bot.process_new_updates([update]))
@@ -239,11 +240,10 @@ async def setup():
     await bot.remove_webhook()
     # Set webhook
     logger.info('Starting up: setting webhook')
-    await bot.set_webhook(url=WEBHOOK_URL_BASE,
-                certificate=open(WEBHOOK_SSL_CERT, 'r'))
+    await bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH, certificate=open(WEBHOOK_SSL_CERT, 'r'))
     app = web.Application()
-    app.router.add_post('/', handle)
-    app.on_cleanup.append(shutdown)
+    app.router.add_post('/{token}/', handle)
+    # app.on_cleanup.append(shutdown)
     return app
 
 if __name__ == '__main__':
