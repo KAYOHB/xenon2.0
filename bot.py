@@ -2,7 +2,6 @@ import asyncio
 import os
 from dotenv import load_dotenv
 from telebot.async_telebot import AsyncTeleBot
-from utils import price
 import requests
 import json
 import importlib.resources as pkg_resources
@@ -13,17 +12,17 @@ from aiohttp import web
 import logging
 import ssl
 
+
 from utils import price, get_denom, auction_pending, get_ob, get_market_id, get_volume
 
 load_dotenv()
 API_TOKEN = os.getenv("api_key")
-WEBHOOK_HOST = 'xenon3.com'
+WEBHOOK_HOST = 'xenon3.ddns.net'
 WEBHOOK_PORT = 8443  # 443, 80, 88 or 8443 (port need to be 'open')
 WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
 WEBHOOK_SSL_CERT = '/home/kayo/projects/tg1/main/xenon2.0/ssl/webhook_cert.pem'  # Path to the ssl certificate
 WEBHOOK_SSL_PRIV = '/home/kayo/projects/tg1/main/xenon2.0/ssl/webhook_pkey.pem'  # Path to the ssl private key
 WEBHOOK_URL_BASE = "https://{}:{}".format(WEBHOOK_HOST, WEBHOOK_PORT)
-WEBHOOK_URL_PATH = "/{}/".format(API_TOKEN)
 
 # Process webhook calls
 async def handle(request):
@@ -37,9 +36,9 @@ async def handle(request):
 
 
 #Load bot api_key
-bot = AsyncTeleBot(API_TOKEN)
 logger = telebot.logger
 telebot.logger.setLevel(logging.INFO)
+bot = AsyncTeleBot(API_TOKEN)
 
 @bot.message_handler(commands=["tokenomics"])
 async def tokenomics(message):
@@ -240,7 +239,8 @@ async def setup():
     await bot.remove_webhook()
     # Set webhook
     logger.info('Starting up: setting webhook')
-    await bot.set_webhook(url=WEBHOOK_URL_BASE, certificate=open(WEBHOOK_SSL_CERT, 'r'))
+    await bot.set_webhook(url=WEBHOOK_URL_BASE,
+                certificate=open(WEBHOOK_SSL_CERT, 'r'))
     app = web.Application()
     app.router.add_post('/', handle)
     app.on_cleanup.append(shutdown)
