@@ -17,12 +17,12 @@ from utils import price, get_denom, auction_pending, get_ob, get_market_id, get_
 from cmc import mcof
 
 load_dotenv()
-API_TOKEN = os.getenv("api_key_test")
+API_TOKEN = os.getenv("api_key")
 WEBHOOK_HOST = 'xenon3.ddns.net'
 WEBHOOK_PORT = 8443  # 443, 80, 88 or 8443 (port need to be 'open')
 WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
-WEBHOOK_SSL_CERT = '/home/kayo/projects/tg1/main/xenon2.0/ssl/webhook_cert.pem'  # Path to the ssl certificate
-WEBHOOK_SSL_PRIV = '/home/kayo/projects/tg1/main/xenon2.0/ssl/webhook_pkey.pem'  # Path to the ssl private key
+WEBHOOK_SSL_CERT = 'ssl/webhook_cert.pem'  # Path to the ssl certificate
+WEBHOOK_SSL_PRIV = 'ssl/webhook_pkey.pem'  # Path to the ssl private key
 WEBHOOK_URL_BASE = "https://{}:{}".format(WEBHOOK_HOST, WEBHOOK_PORT)
 WEBHOOK_URL_PATH = "/{}/".format(API_TOKEN)
 
