@@ -14,11 +14,12 @@ import ssl
 
 
 from utils import price, get_denom, auction_pending, get_ob, get_market_id, get_volume
+from cmc import mcof
 
 load_dotenv()
-API_TOKEN = os.getenv("api_key")
+API_TOKEN = os.getenv("api_key_test")
 WEBHOOK_HOST = 'xenon3.ddns.net'
-WEBHOOK_PORT = 8443 # 443, 80, 88 or 8443 (port need to be 'open')
+WEBHOOK_PORT = 8443  # 443, 80, 88 or 8443 (port need to be 'open')
 WEBHOOK_LISTEN = '0.0.0.0'  # In some VPS you may need to put here the IP addr
 WEBHOOK_SSL_CERT = '/home/kayo/projects/tg1/main/xenon2.0/ssl/webhook_cert.pem'  # Path to the ssl certificate
 WEBHOOK_SSL_PRIV = '/home/kayo/projects/tg1/main/xenon2.0/ssl/webhook_pkey.pem'  # Path to the ssl private key
@@ -228,6 +229,13 @@ async def pending(message):
     auction = auction_pending()
     await bot.reply_to(message, text=f"Total on-chain volume is currently:\n\n${vol}\n\nNext week's pending auction basket has accumulated:\n\n${auction}")
 
+@bot.message_handler(commands=["mcof"])
+async def mc(message):
+    request = message.text.split()[1].upper()
+    print(request)
+    price_if = mcof(f'{request}')
+    await bot.reply_to(message, text=f"if INJ had the Market Cap of {request}, then the price per token would be ${price_if} per token.")
+
 async def shutdown(app):
     logger.info('Shutting down: removing webhook')
     await bot.remove_webhook()
@@ -243,7 +251,7 @@ async def setup():
     await bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH, certificate=open(WEBHOOK_SSL_CERT, 'r'))
     app = web.Application()
     app.router.add_post('/{token}/', handle)
-    # app.on_cleanup.append(shutdown)
+    app.on_cleanup.append(shutdown)
     return app
 
 if __name__ == '__main__':
